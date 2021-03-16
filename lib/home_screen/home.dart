@@ -1,5 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:notify/dio_helper/dio_helper.dart';
 import 'package:notify/models/push_notification_model.dart';
 import 'package:notify/notificationBadge/notificationb_badge.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -13,11 +14,50 @@ class _HomePageState extends State<HomePage> {
   int _totalNotifications;
   FirebaseMessaging _messaging = FirebaseMessaging();
   PushNotification _notificationInfo;
+  String token;
   @override
   void initState() {
     _totalNotifications = 0;
     super.initState();
     registerNotification();
+  }
+
+  Future<void> pushNotify() async {
+    await DioHelper.postData(
+      path: '/fcm/send',
+      data: {
+        "to":
+            "frcQWeERTweVmi4BsHFtsS:APA91bGuP-BASaUtLSwdEr2XUttIFf9Oximk4cB6IB8Vqc6nQ7vQGgXcIYZuCDq4_cOcYLtFLbz9VQD0HM80J-QzC6xmDlI75zxUwa3W64hf8lW8sBXw9naZSSESqJ5EgzsKZu-hUc3V",
+        "notification": {
+          "body": "Body of Your Notification push notifications",
+          "title": "Title of Your Notification",
+          "vibrate": 1,
+          "sound": 1,
+          "largeIcon": "large_icon",
+          "smallIcon": "small_icon",
+          "is_background": false,
+          "timestamp": "2020-12-29 22:00:00"
+        },
+        "data": {
+          "body": "Body of Your Notification push notifications",
+          "title": "Title of Your Notification",
+          "key_1": "Value for key_1",
+          "key_2": "Value for key_2"
+        }
+      },
+    ).then((value) {
+      print(value.toString());
+    }).catchError((e) {
+      // if (e.response) {
+      //   print(e.response.data);
+      //   print(e.response.headers);
+      //   print(e.response.request);
+      // } else {
+      //   // Something happened in setting up or sending the request that triggered an Error
+      //   print(e.request);
+      //   print(e.message);
+      // }
+    });
   }
 
   @override
@@ -41,6 +81,12 @@ class _HomePageState extends State<HomePage> {
           SizedBox(height: 16.0),
           NotificationBadge(totalNotifications: _totalNotifications),
           SizedBox(height: 16.0),
+          RaisedButton(
+            onPressed: () async {
+              await pushNotify();
+            },
+            child: Text('Push'),
+          ),
           // TODO: add the notification text here
           _notificationInfo != null
               ? Column(
@@ -108,6 +154,7 @@ class _HomePageState extends State<HomePage> {
     // Used to get the current FCM token
     _messaging.getToken().then((token) {
       print('Token: $token');
+      token = token;
     }).catchError((e) {
       print('Error: $e');
     });
